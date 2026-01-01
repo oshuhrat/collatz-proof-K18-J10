@@ -1,15 +1,14 @@
-Zenodo (all versions): https://doi.org/10.5281/zenodo.18114234
+Zenodo (all versions): https://doi.org/10.5281/zenodo.18114234  
 Review / feedback thread (GitHub Issue): https://github.com/oshuhrat/collatz-proof-K18-J10/issues/1
 
 # Collatz (Project Alet) - Certified Proof Bundle (K=18, J=10)
 
-Authors: **Shuhrat Okilov** and **Ulugbek Khamidov**
-Project: **Alet (Ethical AGI Development)**, Samarkand, Uzbekistan (independent developers)
+Authors: **Shuhrat Okilov** and **Ulugbek Khamidov**  
+Project: **Alet (Ethical AGI Development)**, Samarkand, Uzbekistan (independent researchers)
 
-This repository contains a *computationally certified* proof bundle for the Collatz conjecture using an **honest-cylinder finite-state model** of the odd-only Collatz map at modulus `2^18`, with a 64-phase table and a deficit band `d в€€ [-10, 6]`.
+This repository contains a computationally certified proof bundle for the Collatz conjecture using an honest-cylinder finite-state model of the odd-only Collatz map at modulus `2^18`, with a 64-phase table and a deficit band `d in [-10, 6]`.
 
-The proof is verified by a **single script** which must print:
-
+The proof is verified by a single script which must print the final line:
 ```text
 [THEOREM VERIFY] OK
 ```
@@ -73,5 +72,6 @@ The verifier checks these values exactly and aborts on any mismatch.
 ## License
 
 Choose and add a `LICENSE` file (e.g., MIT) as needed.
+
 
 
