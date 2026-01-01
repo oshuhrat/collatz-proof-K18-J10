@@ -1,6 +1,7 @@
-﻿Zenodo (all versions): https://doi.org/10.5281/zenodo.18114234
-Zenodo (v1.0.0): https://doi.org/10.5281/zenodo.18114235
-# Collatz (Project Alet) вЂ” Certified Proof Bundle (K=18, J=10)
+Zenodo (all versions): https://doi.org/10.5281/zenodo.18114234
+Review / feedback thread (GitHub Issue): https://github.com/oshuhrat/collatz-proof-K18-J10/issues/1
+
+# Collatz (Project Alet) - Certified Proof Bundle (K=18, J=10)
 
 Authors: **Shuhrat Okilov** and **Ulugbek Khamidov**
 Project: **Alet (Ethical AGI Development)**, Samarkand, Uzbekistan (independent developers)
@@ -72,4 +73,5 @@ The verifier checks these values exactly and aborts on any mismatch.
 ## License
 
 Choose and add a `LICENSE` file (e.g., MIT) as needed.
+
 
