@@ -1,0 +1,101 @@
+{
+  "proof_id": "collatz_k18_j10",
+  "title": "Collatz LT bundle (K=18, d∈[-10,6], P=64)",
+  "authors": [
+    {
+      "name": "Shuhrat Okilov",
+      "project": "Alet (Ethical AGI Development)",
+      "location": "Samarkand, Uzbekistan",
+      "role": "Independent Researcher"
+    },
+    {
+      "name": "Ulugbek Khamidov",
+      "project": "Alet (Ethical AGI Development)",
+      "location": "Samarkand, Uzbekistan",
+      "role": "Independent Researcher"
+    }
+  ],
+  "parameters": {
+    "K": 18,
+    "P": 64,
+    "dmin": -10,
+    "dmax": 6,
+    "D": 17,
+    "N_odd": 131072,
+    "N_states": 142606336,
+    "packing": "A",
+    "sid_formula": "sid = ((i * D + (d - dmin)) * P + r), where i = a >> 1 and a = 2*i+1"
+  },
+  "semantic_start_set": {
+    "description": "Semantic start set S0 = {(a,d=0,r=0) : a odd mod 2^18}",
+    "d0": 0,
+    "r0": 0
+  },
+  "files": [
+    {
+      "id": "next",
+      "filename": "next_K18_d-10_6_P64.dat",
+      "sha256": "51a1f8291b509769b65ab2e41e8a96f8d05c70ea8d57cb04aea3820c7b919334",
+      "bytes": 570425344,
+      "dtype": "int32",
+      "description": "Transition function Next[sid]; -1 indicates kill, otherwise Next[sid]=sid'."
+    },
+    {
+      "id": "kill_kind",
+      "filename": "kill_kind_K18_d-10_6_P64.dat",
+      "sha256": "21c8b89d08fa8149d53ec6f374a6fd315095bc205dcb9d4f8fe7a409999c4977",
+      "bytes": 142606336,
+      "dtype": "uint8",
+      "description": "Kill classification for sid: 0=live, 1=shrink-kill, 2=exit_high, 3=exit_low."
+    },
+    {
+      "id": "badpre_exitlow",
+      "filename": "badpre_exitlow_K18_d-10_6_P64.bit",
+      "sha256": "562fae1d79678646c184f8e5deb5d93a7e454eac7995a09aceae922511c23ddd",
+      "bytes": 17825792,
+      "dtype": "bitset",
+      "description": "Bitset for Pre*(exit_low): states that can reach exit_low."
+    },
+    {
+      "id": "rank",
+      "filename": "rank_K18_d-10_6_P64.dat",
+      "sha256": "98c6cfe9d9fdc37eb3f78314e45c931e53f5194d50279ee66876bb1fbff32bb3",
+      "bytes": 570425344,
+      "dtype": "uint32",
+      "description": "Ranking certificate: for every live edge sid->sid', Rank[sid'] < Rank[sid]."
+    }
+  ],
+  "verified_claims": {
+    "rank_sample_verify": {
+      "samples": 2000000,
+      "expected_result": "OK"
+    },
+    "hit_r0": {
+      "expected_value": 0,
+      "meaning": "No semantic start state (d=0,r=0) lies in Pre*(exit_low)."
+    },
+    "exit_high_descent_full": {
+      "expected_bad": 0,
+      "expected_exit_high_count": 4471781,
+      "expected_k_min": 2,
+      "expected_k_max": 17
+    },
+    "shrink_2step_descent_full": {
+      "expected_bad": 0,
+      "expected_shrink_count": 35652672
+    }
+  },
+  "bundle_locations": [
+    {
+      "type": "repo_relative_dir",
+      "path_hint": "collatz_LT_K18_J10_bundle",
+      "notes": "Place the four artifact files in this directory (next/kill_kind/badpre_exitlow/rank)."
+    },
+    {
+      "type": "colab_drive_example",
+      "path_hint": "/content/drive/MyDrive/collatz_LT_K18_J10_bundle",
+      "notes": "Example path used in Colab."
+    }
+  ],
+  "verifier_output": "[THEOREM VERIFY] OK"
+}

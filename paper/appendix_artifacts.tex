@@ -1,0 +1,57 @@
+﻿% paper/appendix_artifacts.tex
+
+\section{Artifact table (SHA256)}
+\label{app:artifacts}
+
+The proof bundle is verified by the single script
+\texttt{scripts/verify\_full\_theorem\_K18\_J10.py}, which must print
+\texttt{[THEOREM VERIFY] OK}.
+
+\subsection*{Model parameters}
+\[
+K=18,\quad P=64,\quad d\in[-10,6],\quad D=17,\quad
+N = 2^{17}\cdot 17\cdot 64 = 142{,}606{,}336 \text{ states}.
+\]
+
+\subsection*{Bundle directory}
+
+The published release archive is available at \url{https://doi.org/10.5281/zenodo.18114235}.
+The verifier reads the artifact bundle from the directory
+\texttt{collatz\_LT\_K18\_J10\_bundle/} (or an OS-specific path provided via
+\texttt{--bundle-dir} or the \texttt{COLLATZ\_BUNDLE\_DIR} environment variable).
+
+\subsection*{Files and hashes}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+File & SHA256 \\
+\midrule
+\texttt{next\_K18\_d-10\_6\_P64.dat} &
+\texttt{51a1f8291b509769b65ab2e41e8a96f8d05c70ea8d57cb04aea3820c7b919334} \\
+
+\texttt{kill\_kind\_K18\_d-10\_6\_P64.dat} &
+\texttt{21c8b89d08fa8149d53ec6f374a6fd315095bc205dcb9d4f8fe7a409999c4977} \\
+
+\texttt{badpre\_exitlow\_K18\_d-10\_6\_P64.bit} &
+\texttt{562fae1d79678646c184f8e5deb5d93a7e454eac7995a09aceae922511c23ddd} \\
+
+\texttt{rank\_K18\_d-10\_6\_P64.dat} &
+\texttt{98c6cfe9d9fdc37eb3f78314e45c931e53f5194d50279ee66876bb1fbff32bb3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Certified/verified claims checked by the verifier}
+
+\begin{itemize}
+  \item \textbf{Integrity:} SHA256 of all four artifacts matches this appendix and \texttt{paper/artifacts.json}.
+  \item \textbf{Termination:} \texttt{rank.dat} is a ranking certificate; the verifier checks
+        $rank(\mathrm{Next}(s)) < rank(s)$ on a fixed random sample of live edges.
+  \item \textbf{No lower escape from semantic starts:} from the semantic start set $(d=0,r=0)$, no state can reach
+        \texttt{exit\_low} (equivalently, \texttt{hit\_r0 = 0}).
+  \item \textbf{\texttt{exit\_high} descent (FULL):} for every \texttt{exit\_high} kill state, the odd-only step
+        produces strict descent in $\mathbb{N}$.
+  \item \textbf{\texttt{shrink} descent (FULL, 2-step):} for every \texttt{shrink} kill state, if $n_1=F(n)$ then
+        $n_1\equiv 1\pmod 8$, and if $n_1>1$ then $F(n_1)<n_1$.
+\end{itemize}
