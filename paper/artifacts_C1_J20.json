@@ -1,0 +1,87 @@
+{
+  "proof_id": "collatz_C1_K18_J20",
+  "title": "Collatz C1 FINAL bundle (K=18, d∈[-20,6], P=64) with delta_P64",
+  "authors": [
+    {
+      "name": "Shuhrat Okilov",
+      "project": "Project Alet (Ethical AI Development)",
+      "location": "Samarkand, Uzbekistan",
+      "role": "Independent Researcher"
+    },
+    {
+      "name": "Ulugbek Khamidov",
+      "project": "Project Alet (Ethical AI Development)",
+      "location": "Samarkand, Uzbekistan",
+      "role": "Independent Researcher"
+    }
+  ],
+  "parameters": {
+    "K": 18,
+    "P": 64,
+    "J": 20,
+    "dmin": -20,
+    "dmax": 6,
+    "D": 27,
+    "N_odd": 131072,
+    "N_states": 226492416,
+    "packing": "A",
+    "sid_formula": "sid = ((i * D + (d - dmin)) * P + r), where i = a >> 1 and a = 2*i+1"
+  },
+  "semantic_start_set": {
+    "description": "Start layer S0 = {(a,d=0,r=0) : a odd mod 2^18}",
+    "d0": 0,
+    "r0": 0
+  },
+  "files": [
+    {
+      "id": "delta",
+      "filename": "delta_P64.dat",
+      "sha256": "34213948e259d1605195e73393ffe28202b0ab24248a8c708ed2b35b1a2ff8bf",
+      "bytes": 64,
+      "dtype": "uint8[64]",
+      "description": "Phase schedule Δ[r] with values in {1,2}."
+    },
+    {
+      "id": "kill_kind",
+      "filename": "kill_kind_K18_d-20_6_P64.dat",
+      "sha256": "f510179e153e76a24915741b4a3658315e9a16a2b844be2bbafcc1faf71c0f4c",
+      "bytes": 226492416,
+      "dtype": "uint8",
+      "description": "Kill classification: 0=live, 1=shrink2, 2=exit_high, 3=exit_low, 4=carry."
+    },
+    {
+      "id": "next",
+      "filename": "next_K18_d-20_6_P64.dat",
+      "sha256": "93e8a7c94b275a100c5c2af932bf8c5081bb19d0663bcb323753d817ea1ee791",
+      "bytes": 905969664,
+      "dtype": "int32",
+      "description": "Live successor Next[sid]; -1 indicates kill."
+    },
+    {
+      "id": "goodpre",
+      "filename": "goodpre_K18_d-20_6_P64.bit",
+      "sha256": "b7889f17de389d5bd856b47e25537e8e548006963ada43906df3f14b18602cac",
+      "bytes": 28311552,
+      "dtype": "bitset",
+      "description": "Bitset of Pre*(Good) along live edges, where Good={carry,exit_high,shrink2}."
+    },
+    {
+      "id": "rank",
+      "filename": "rank_K18_d-20_6_P64.dat",
+      "sha256": "d3414e35b0086809d41a0d86724ad8b0818210371a1b5846757d6dacb3b0cc64",
+      "bytes": 905969664,
+      "dtype": "uint32",
+      "description": "Ranking certificate on live edges restricted to Pre*(Good): for live u with goodpre[u]=1, rank[next[u]] < rank[u]."
+    }
+  ],
+  "bundle_zip": {
+    "filename": "bundle_C1_K18_J20_FINAL.zip",
+    "sha256": "a55d4d55ec4e8f816764033e4fa80b0c9a12ec9fd45c9f696168036c5314d9a4",
+    "description": "Zip containing delta/kill_kind/next/goodpre/rank for C1 J=20."
+  },
+  "verifier": {
+    "script": "scripts/verify_C1_K18_J20.py",
+    "expected_output": "[THEOREM VERIFY] OK",
+    "notes": "Verifier checks SHA256, V4 start coverage, V2 rank on live edges restricted to goodpre, V5 witness checks, and sampled V1' semantic recomputation. Optional --heavy-goodpre fully recomputes Pre*(Good) and compares bit-for-bit."
+  }
+}

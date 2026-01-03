@@ -1,0 +1,93 @@
+\appendix
+
+\section{Artifact table (SHA256) for C1, $J=20$}
+\label{app:sha}
+
+Parameters:
+\[
+K=18,\quad P=64,\quad d\in[-20,6],\quad D=27,\quad
+N = 2^{17}\cdot 27\cdot 64 = 226{,}492{,}416\ \text{states}.
+\]
+
+\begin{center}
+\small
+\begin{tabular}{p{0.58\linewidth}p{0.38\linewidth}}
+\toprule
+File & SHA256 \\
+\midrule
+\texttt{delta\_P64.dat} &
+\texttt{34213948e259d1605195e73393ffe28202b0ab24248a8c708ed2b35b1a2ff8bf} \\
+\texttt{kill\_kind\_K18\_d-20\_6\_P64.dat} &
+\texttt{f510179e153e76a24915741b4a3658315e9a16a2b844be2bbafcc1faf71c0f4c} \\
+\texttt{next\_K18\_d-20\_6\_P64.dat} &
+\texttt{93e8a7c94b275a100c5c2af932bf8c5081bb19d0663bcb323753d817ea1ee791} \\
+\texttt{goodpre\_K18\_d-20\_6\_P64.bit} &
+\texttt{b7889f17de389d5bd856b47e25537e8e548006963ada43906df3f14b18602cac} \\
+\texttt{rank\_K18\_d-20\_6\_P64.dat} &
+\texttt{d3414e35b0086809d41a0d86724ad8b0818210371a1b5846757d6dacb3b0cc64} \\
+\midrule
+Bundle zip \texttt{bundle\_C1\_K18\_J20\_FINAL.zip} &
+\texttt{a55d4d55ec4e8f816764033e4fa80b0c9a12ec9fd45c9f696168036c5314d9a4} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Independent verifier specification (C1, $K=18$, $J=20$)}
+\label{app:verifier-spec}
+
+This appendix specifies what it means for an independent verifier to accept the C1 $J=20$ bundle.
+
+\subsection*{State indexing (packing A)}
+We fix:
+\[
+K=18,\quad P=64,\quad d_{\min}=-20,\quad d_{\max}=6,\quad D=27,\quad A=2^{17},\quad N=A\cdot D\cdot P.
+\]
+Odd residues are represented by $i\in\{0,\dots,A-1\}$ via $a=2i+1$.
+Deficits are represented by $j=d-d_{\min}\in\{0,\dots,D-1\}$ and phases by $r\in\{0,\dots,63\}$.
+The packed id is
+\[
+\mathrm{sid}(i,j,r)=(i\cdot D+j)\cdot 64 + r.
+\]
+
+\subsection*{File formats}
+\begin{itemize}
+\item \texttt{delta\_P64.dat}: 64 bytes \texttt{uint8}, values in $\{1,2\}$.
+\item \texttt{kill\_kind\_K18\_d-20\_6\_P64.dat}: $N$ bytes \texttt{uint8} with
+$0=\texttt{live},1=\texttt{shrink2},2=\texttt{exit\_high},3=\texttt{exit\_low},4=\texttt{carry}$.
+\item \texttt{next\_K18\_d-20\_6\_P64.dat}: $N$ \texttt{int32}; live successor id or $-1$ for kills.
+\item \texttt{goodpre\_K18\_d-20\_6\_P64.bit}: bitset of $N$ bits, packed into bytes.
+\item \texttt{rank\_K18\_d-20\_6\_P64.dat}: $N$ \texttt{uint32}.
+\end{itemize}
+
+\subsection*{Semantic recomputation}
+For each state $(a,d,r)$ compute:
+\[
+y=3a+1,\quad k=v_2(y),\quad a_1=y/2^k,\quad a'=(a_1\bmod 2^{18}),\quad d'=d+k-\Delta[r],\quad r'=(r+1)\bmod 64.
+\]
+Kill classification by priority:
+\[
+\texttt{carry if }k\ge 18;\quad
+\texttt{shrink2 if }(k\ge 2)\wedge(a_1\equiv1\!\!\!\pmod 8);\quad
+\texttt{exit\_high if }d'>6;\quad
+\texttt{exit\_low if }d'<-20;\quad
+\texttt{else live}.
+\]
+
+\subsection*{Certified region and ranking restriction}
+Let $\mathsf{Good}=\{\texttt{carry},\texttt{exit\_high},\texttt{shrink2}\}$.
+The bitset \texttt{goodpre} encodes $\mathrm{Pre}^*(\mathsf{Good})$ along live edges.
+The rank certificate is required only on live edges inside this region:
+for every $u$ with \texttt{goodpre[u]=1} and \texttt{kill\_kind[u]=live}, letting $v=\texttt{next[u]}$,
+the verifier checks $\rho[v]<\rho[u]$.
+
+\subsection*{Verifier checks}
+The verifier accepts iff:
+\begin{itemize}
+\item SHA256 and sizes match Appendix~\ref{app:sha};
+\item transition/kind recomputation matches the files (sampled or exhaustive);
+\item \texttt{goodpre} equals $\mathrm{Pre}^*(\mathsf{Good})$ (optionally via full recomputation);
+\item start coverage: all $(a,0,0)$ lie in \texttt{goodpre};
+\item rank monotonicity holds on live edges within \texttt{goodpre};
+\item witness checks at progress kills: \texttt{carry} has $k\ge 18$, \texttt{exit\_high} has $k\ge 2$, and
+\texttt{shrink2} has $k\ge 2$ and $a_1\equiv 1\pmod 8$.
+\end{itemize}

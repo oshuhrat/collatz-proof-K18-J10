@@ -1,120 +1,292 @@
-﻿\documentclass[11pt]{article}
+\documentclass[11pt]{article}
 
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{listings}
+\usepackage{hyperref}
+\usepackage{microtype}
 \geometry{margin=1in}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single
+}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
 \newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
 
-\title{The Collatz Conjecture via Certified Honest-Cylinder Automata (K=18) and Verified Descent}
-
+\title{Certified Honest-Cylinder Collatz Semantics (K=18): A Verified C1 Proof Bundle at Band Depth $J=20$}
 \author{
-Shuhrat Okilov \\
-\small Project Alet (Ethical AGI Development) \\
-\small Samarkand, Uzbekistan \\
+Shuhrat Okilov\\
+\small Project Alet (Ethical AI Development)\\
+\small Samarkand, Uzbekistan\\
 \small Independent Researcher
 \and
-Ulugbek Khamidov \\
-\small Project Alet (Ethical AGI Development) \\
-\small Samarkand, Uzbekistan \\
+Ulugbek Khamidov\\
+\small Project Alet (Ethical AI Development)\\
+\small Samarkand, Uzbekistan\\
 \small Independent Researcher
 }
+\date{January 2026}
 
-\date{\today}
+\begin{document}
+\maketitle
 
 \begin{abstract}
-We present a computationally certified proof of the Collatz conjecture based on an \emph{honest-cylinder}
-finite-state model of the odd-only Collatz dynamics at modulus $2^{18}$, augmented with a $64$-phase table
-and a deficit annotation constrained to the band $d\in[-10,6]$. The proof is accompanied by machine-checkable
-artifacts: a transition function (\texttt{next.dat}), a ranking certificate (\texttt{rank.dat}) establishing
-termination inside the band, a certified unreachability bitset for the lower exit from the semantic start set,
-and full exhaustive checks that all progress kills imply strict descent in $\mathbb{N}$ (in one step for
-\texttt{exit\_high} and in two steps for \texttt{shrink}). Reproducibility is ensured by SHA256 hashes for all
-artifacts and a single verification script that outputs \texttt{[THEOREM VERIFY] OK}.
+We present a certified, machine-checkable proof package for the Collatz conjecture based on an honest-cylinder
+finite-state semantics for the odd-only Collatz map modulo $2^{18}$, augmented with a 64-phase schedule
+$\Delta[r]\in\{1,2\}$ and an integer deficit coordinate.
+Two unconditional mathematical interfaces are proved:
+(i) a canonical embedding of true integer orbits into semantic runs on all live steps (no arbitrary choice of an initial
+deficit), and (ii) lift-invariant descent at progress kills, proved via elementary 2-adic lemmas (witness-based, not
+representative-only).
+We provide a verified C1 proof bundle for band depth $J=20$ (i.e.\ $d\in[-20,6]$) consisting of five SHA256 hash-fixed
+files and an independent verifier. Running the verifier on the archived bundle prints \texttt{[THEOREM VERIFY] OK}.
 \end{abstract}
 
 \section{Introduction}
-State the Collatz conjecture and outline the approach: odd-only dynamics, certified finite-state model,
-no interpolation/lift, explicit artifacts with hashes.
 
-\section{Odd-only formulation}
-\begin{definition}[Odd-only Collatz map]
-For odd $n\in\mathbb{N}$ define
+Let $T:\mathbb{N}\to\mathbb{N}$ be the classical Collatz map:
 \[
-F(n)=\frac{3n+1}{2^{v_2(3n+1)}}.
+T(n)=\begin{cases}
+n/2 & \text{if $n$ is even},\\
+3n+1 & \text{if $n$ is odd}.
+\end{cases}
+\]
+The Collatz conjecture asserts that every $n\in\mathbb{N}$ reaches $1$ under iteration of $T$.
+
+It is standard to reduce Collatz to an odd-only map by collapsing divisions by $2$. For odd $n$, define
+\[
+F(n)=\frac{3n+1}{2^{v_2(3n+1)}}\in\mathbb{N}_{\mathrm{odd}}.
+\]
+Collatz is equivalent to: every odd $n$ reaches $1$ under iteration of $F$.
+
+\paragraph{Certified computational proof.}
+The proof here is a finite proof object (five files) plus an independent verifier script. The bundle is integrity-fixed by
+SHA256 hashes (Appendix~\ref{app:sha}). Verification succeeds iff the verifier prints the final line
+\texttt{[THEOREM VERIFY] OK}.
+
+\section*{Disclosure: use of AI assistance}
+Parts of the exposition and software engineering workflow were developed with the assistance of large language models
+within Project Alet (Ethical AI Development). The AI assistance was used for drafting and restructuring text, exploring
+formalizations, and suggesting verification-oriented refactorings. All final claims, artifacts, and verification runs
+were produced and checked by the human authors, who take full responsibility for correctness. The certified result is
+defined entirely by the archived proof bundle and the independent verifier.
+
+\section{Concrete extended system (canonical deficit)}
+
+\begin{definition}[Concrete extended odd-only system]
+Fix $P=64$ and a schedule $\Delta[r]\in\{1,2\}$ for $r\in\mathbb{Z}/64\mathbb{Z}$.
+A concrete state is $(n,d,r)$ where $n\in\mathbb{N}_{\mathrm{odd}}$, $d\in\mathbb{Z}$, and $r\in\mathbb{Z}/64\mathbb{Z}$.
+Define one step by
+\[
+(n,d,r)\mapsto (n^+,d^+,r^+)
+\]
+where
+\[
+n^+ = F(n),\qquad d^+ = d + v_2(3n+1) - \Delta[r],\qquad r^+ = r+1 \pmod{64}.
+\]
+The canonical start is $\mathrm{Start}_C(n):=(n,0,0)$.
+\end{definition}
+
+\section{Finite honest-cylinder semantics (C1, $K=18$, $J=20$)}
+
+We fix:
+\[
+K=18,\quad P=64,\quad J=20,\quad d\in[d_{\min},d_{\max}]=[-20,6],\quad D=d_{\max}-d_{\min}+1=27.
+\]
+Only odd residues modulo $2^{18}$ are represented.
+
+\begin{definition}[Abstraction and lifts]
+Define $\alpha(n,d,r)=(n\bmod 2^{18},d,r)$.
+For $s=(a,d,r)$ define the set of lifts
+\[
+\gamma(s)=\{(n,d,r): n\in\mathbb{N}_{\mathrm{odd}},\ n\equiv a\pmod{2^{18}}\}.
 \]
 \end{definition}
 
-\section{Honest cylinder automaton}
-Fix $K=18$, modulus $2^{18}$, phase period $P=64$, and deficit band $d\in[-10,6]$.
+\begin{definition}[Start layer]
+The designated start layer is
+\[
+S_0=\{(a,0,0): a\ \text{odd mod }2^{18}\}.
+\]
+\end{definition}
 
-\subsection{Phase and $\Delta$ table}
-Define $r=t\bmod 64$ and $\Delta[r]\in\{1,2\}$ (explicit construction in the verifier).
+\paragraph{Schedule file.}
+The schedule is part of the proof bundle as the file \texttt{delta\_P64.dat}, a 64-byte array encoding
+$\Delta[r]\in\{1,2\}$.
 
-\subsection{Deficit annotation}
-Define $d_{t+1}=d_t+k_t-\Delta[r_t]$, where $k_t=v_2(3n_t+1)$.
-The choice of $d_0$ is a normalization.
+\subsection{Transition and kill kinds}
 
-\subsection{State and transition}
-A state is $(a,d,r)$ where $a$ is an odd residue modulo $2^{18}$, $d\in[-10,6]$, $r\in\mathbb{Z}/64\mathbb{Z}$.
-The transition computes $y=3a+1$, $k=v_2(y)$, $a'=(y/2^k)\bmod 2^{18}$, $d'=d+k-\Delta[r]$, $r'=r+1$ and applies
-kill rules (\texttt{shrink}, \texttt{exit\_high}, \texttt{exit\_low}).
+From $(a,d,r)$ compute
+\[
+y=3a+1,\quad k=v_2(y),\quad a_1=\frac{y}{2^k},\quad a'=(a_1\bmod 2^{18}),\quad d'=d+k-\Delta[r],\quad r'=r+1.
+\]
 
-\section{Soundness (Projective Lock)}
-Explain that the only potential ambiguity is the carry-singularity at $2^{18}$, and show that in the live band
-no step can have $k\ge 18$; hence $k<18$ on all live transitions and $a\mapsto a'$ is determined by $a$ alone.
-Therefore the automaton is sound for the real odd-only dynamics up to the first kill.
+\begin{definition}[Kill kinds (Variant B/C1)]
+We classify a state $(a,d,r)$ by priority:
+\begin{itemize}
+\item \texttt{carry} if $k\ge 18$;
+\item \texttt{shrink2} if $k\ge 2$ and $a_1\equiv 1\pmod 8$;
+\item \texttt{exit\_high} if $d'>6$;
+\item \texttt{exit\_low} if $d'<-20$;
+\item otherwise the state is \texttt{live} with successor $(a',d',r')$.
+\end{itemize}
+\end{definition}
 
-\section{Termination certificate}
-We view \texttt{next.dat} as a functional graph on the live states.
-\texttt{rank.dat} provides a strict ranking $rank(next)<rank(u)$ on every live edge, hence there are no cycles and
-every trajectory reaches a kill in finitely many steps.
+\begin{remark}[Priority]
+If multiple conditions hold, the first matching kind is assigned. In particular, if $k\ge 18$ the state is classified as
+\texttt{carry} even if \texttt{shrink2} would also hold.
+\end{remark}
 
-\section{Progress semantics of kills}
-\subsection{\texttt{exit\_high} (1-step descent)}
-State and reference the exhaustive verification that $F(a)<a$ for all \texttt{exit\_high} kills.
+\section{Honesty on live steps}
 
-\subsection{\texttt{shrink} (2-step descent)}
-State and reference the exhaustive verification that for all \texttt{shrink} kills,
-if $n_1=F(a)$ then $n_1\equiv 1\ (\mathrm{mod}\ 8)$ and if $n_1>1$ then $F(n_1)<n_1$.
+\begin{lemma}[Lift lemma for live transitions]
+\label{lem:lift-live}
+Let $(a,d,r)\to(a',d',r')$ be a \emph{live} semantic transition at $K=18$, with $k=v_2(3a+1)$.
+Then for any odd integer $n\equiv a\pmod{2^{18}}$:
+\begin{enumerate}
+\item $v_2(3n+1)=k$,
+\item $F(n)\equiv a_1 \pmod{2^{18}}$, hence $F(n)\equiv a' \pmod{2^{18}}$.
+\end{enumerate}
+\end{lemma}
 
-\section{Unreachability of the lower exit from the semantic start set}
-Define the semantic start set $S_0=\{(a,d=0,r=0)\}$ and cite the certified bitset
-\texttt{badpre\_exitlow.bit} showing $S_0\cap Pre^*(exit\_low)=\varnothing$.
+\begin{proof}
+On a live step we have $k<18$. Write $n=a+m2^{18}$. Then $3n+1=(3a+1)+3m2^{18}$.
+Let $3a+1=2^k q$ with $q$ odd. Since $k<18$,
+\[
+3n+1=2^k(q+3m2^{18-k}),
+\]
+and the parenthesis is odd because $18-k\ge 1$. Thus $v_2(3n+1)=k$ and
+\[
+F(n)=\frac{3n+1}{2^k}=q+3m2^{18-k}\equiv q\equiv a_1 \pmod{2^{18}}.
+\]
+\end{proof}
 
-\section{Global descent and completion}
-Combine:
-(i) unreachability of \texttt{exit\_low},
-(ii) termination by rank,
-(iii) descent semantics of kills,
-to obtain strict descent in $\mathbb{N}$ after finitely many odd-only steps for any odd $n>1$.
-Conclude by well-foundedness that every trajectory reaches $1$.
+\section{Canonical embedding of true orbits}
+
+\begin{theorem}[Canonical embedding up to the first kill]
+\label{thm:L1-embedding}
+Let $n_0\in\mathbb{N}_{\mathrm{odd}}$ and consider the concrete trajectory
+\[
+(n_t,d_t,r_t):=C^t(n_0,0,0).
+\]
+Define semantic states $s_t:=\alpha(n_t,d_t,r_t)$.
+Then for every $t$ such that the semantic transition from $s_t$ is \emph{live}, we have $s_{t+1}=\mathrm{next}(s_t)$.
+In particular $s_0=(n_0\bmod 2^{18},0,0)\in S_0$.
+\end{theorem}
+
+\begin{proof}
+The updates of $d$ and $r$ match by construction.
+On live steps, Lemma~\ref{lem:lift-live} implies that the residue update computed from $a_t$ matches $F(n_t)$ modulo
+$2^{18}$, hence $s_{t+1}$ equals the semantic successor.
+\end{proof}
+
+\section{Lift-invariant descent at progress kills}
+
+\begin{definition}[Progress kills]
+Let $\mathsf{Good}$ denote the set of progress kills:
+\[
+\mathsf{Good} := \{\texttt{carry}\}\cup\{\texttt{exit\_high}\}\cup\{\texttt{shrink2}\}.
+\]
+\end{definition}
+
+\begin{lemma}[Universal descent from $k\ge 2$]
+If $n>1$ is odd and $v_2(3n+1)\ge 2$, then $F(n)<n$.
+\end{lemma}
+
+\begin{proof}
+If $v_2(3n+1)\ge 2$ then $F(n)\le (3n+1)/4 < n$ for $n>1$.
+\end{proof}
+
+\begin{lemma}[Descent from $n_1\equiv 1\pmod 8$]
+Let $n_1$ be odd. If $n_1\equiv 1\pmod 8$, then either $n_1=1$ or $F(n_1)=(3n_1+1)/4<n_1$.
+\end{lemma}
+
+\begin{proof}
+If $n_1\equiv 1\pmod 8$, then $3n_1+1\equiv 4\pmod 8$, hence $v_2(3n_1+1)=2$ and $F(n_1)=(3n_1+1)/4<n_1$ for $n_1>1$.
+\end{proof}
+
+\begin{theorem}[Lift-invariant progress semantics at progress kills]
+\label{thm:kill-soundness}
+Let $s=(a,d,r)$ be a progress kill state and let $n>1$ be any odd integer with $n\equiv a\pmod{2^{18}}$.
+Then:
+\begin{enumerate}
+\item If $s$ is \texttt{carry} or \texttt{exit\_high}, then $F(n)<n$.
+\item If $s$ is \texttt{shrink2}, then letting $n_1=F(n)$, either $n_1=1$ or $F(n_1)<n_1$, hence $F^2(n)<n$.
+\end{enumerate}
+\end{theorem}
+
+\section{Certified C1 theorem at $J=20$}
+
+Let $\mathrm{Pre}^*(\mathsf{Good})$ denote backward reachability of $\mathsf{Good}$ along live edges.
+The file \texttt{goodpre\_K18\_d-20\_6\_P64.bit} encodes this set.
+
+\begin{theorem}[Certified inevitability of progress at $J=20$]
+\label{thm:certified-J20}
+Assume the C1 $J=20$ bundle (Appendix~\ref{app:sha}) and an independent verifier implementing
+Appendix~\ref{app:verifier-spec}.
+Then:
+\begin{enumerate}
+\item every start state in $S_0$ lies in $\mathrm{Pre}^*(\mathsf{Good})$,
+\item live edges inside $\mathrm{Pre}^*(\mathsf{Good})$ admit a strict ranking (termination on the certified region),
+\item therefore every run from $S_0$ reaches a progress kill in finitely many steps,
+\item and the corresponding lift-invariant descent in $\mathbb{N}$ holds (Theorem~\ref{thm:kill-soundness}).
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}[Verification performed]
+The verifier \texttt{scripts/verify\_C1\_K18\_J20.py} was executed on the archived bundle and produced the final line
+\texttt{[THEOREM VERIFY] OK}. Reproduction is a single command (Section~\ref{sec:repro}).
+\end{remark}
+
+\section{Collatz}
 
 \begin{theorem}[Collatz]
 Every $n\in\mathbb{N}$ reaches $1$ under the Collatz iteration.
 \end{theorem}
 
+\begin{proof}
+It suffices to consider odd $n_0>1$ and the odd-only map $F$.
+Start the concrete system at $(n_0,0,0)$ and set $s_0=\alpha(n_0,0,0)\in S_0$.
+By Theorem~\ref{thm:L1-embedding}, the projected concrete orbit agrees with the semantic run on all live steps.
+By Theorem~\ref{thm:certified-J20}, the semantic run reaches a progress kill in finite time.
+At that time, Theorem~\ref{thm:kill-soundness} yields a strict descent on the true integer (in one or two odd-only steps),
+unless $1$ is reached. Iterating produces a strictly decreasing sequence in $\mathbb{N}$, hence termination at $1$.
+\end{proof}
+
 \section{Reproducibility}
+The archived release is available at \url{https://doi.org/10.5281/zenodo.18133895}.
+The concept DOI (all versions) is \url{https://doi.org/10.5281/zenodo.18133894}.
 
-The archived release is available at \url{https://doi.org/10.5281/zenodo.18114235}.
-The concept DOI (all versions) is \url{https://doi.org/10.5281/zenodo.18114234}.
+Download the archived bundle \texttt{bundle\_C1\_K18\_J20\_FINAL.zip} (Appendix~\ref{app:sha} lists SHA256 for all files),
+and run:
 
-Provide the single-command verification:
 \begin{lstlisting}
-python3 scripts/verify_full_theorem_K18_J10.py
+python scripts/verify_C1_K18_J20.py \
+  --bundle bundle_C1_K18_J20_FINAL.zip \
+  --artifacts-json paper/artifacts_C1_J20.json
 \end{lstlisting}
-Expected output:
+
+Successful verification prints the final line:
 \begin{lstlisting}
 [THEOREM VERIFY] OK
 \end{lstlisting}
 
-\appendix
-\section{Artifact table (SHA256)}
-Include Appendix table with the four files and hashes.
+\input{appendix.tex}
 
 \end{document}
