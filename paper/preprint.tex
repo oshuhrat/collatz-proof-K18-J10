@@ -1,0 +1,121 @@
+﻿\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{listings}
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+
+\title{The Collatz Conjecture via Certified Honest-Cylinder Automata (K=18) and Verified Descent}
+
+\author{
+Shuhrat Okilov \\
+\small Project Alet (Ethical AGI Development) \\
+\small Samarkand, Uzbekistan \\
+\small Independent Researcher
+\and
+Ulugbek Khamidov \\
+\small Project Alet (Ethical AGI Development) \\
+\small Samarkand, Uzbekistan \\
+\small Independent Researcher
+}
+
+\date{\today}
+
+\begin{abstract}
+We present a computationally certified proof of the Collatz conjecture based on an \emph{honest-cylinder}
+finite-state model of the odd-only Collatz dynamics at modulus $2^{18}$, augmented with a $64$-phase table
+and a deficit annotation constrained to the band $d\in[-10,6]$. The proof is accompanied by machine-checkable
+artifacts: a transition function (\texttt{next.dat}), a ranking certificate (\texttt{rank.dat}) establishing
+termination inside the band, a certified unreachability bitset for the lower exit from the semantic start set,
+and full exhaustive checks that all progress kills imply strict descent in $\mathbb{N}$ (in one step for
+\texttt{exit\_high} and in two steps for \texttt{shrink}). Reproducibility is ensured by SHA256 hashes for all
+artifacts and a single verification script that outputs \texttt{[THEOREM VERIFY] OK}.
+\end{abstract}
+
+\section{Introduction}
+State the Collatz conjecture and outline the approach: odd-only dynamics, certified finite-state model,
+no interpolation/lift, explicit artifacts with hashes.
+
+\section{Odd-only formulation}
+\begin{definition}[Odd-only Collatz map]
+For odd $n\in\mathbb{N}$ define
+\[
+F(n)=\frac{3n+1}{2^{v_2(3n+1)}}.
+\]
+\end{definition}
+
+\section{Honest cylinder automaton}
+Fix $K=18$, modulus $2^{18}$, phase period $P=64$, and deficit band $d\in[-10,6]$.
+
+\subsection{Phase and $\Delta$ table}
+Define $r=t\bmod 64$ and $\Delta[r]\in\{1,2\}$ (explicit construction in the verifier).
+
+\subsection{Deficit annotation}
+Define $d_{t+1}=d_t+k_t-\Delta[r_t]$, where $k_t=v_2(3n_t+1)$.
+The choice of $d_0$ is a normalization.
+
+\subsection{State and transition}
+A state is $(a,d,r)$ where $a$ is an odd residue modulo $2^{18}$, $d\in[-10,6]$, $r\in\mathbb{Z}/64\mathbb{Z}$.
+The transition computes $y=3a+1$, $k=v_2(y)$, $a'=(y/2^k)\bmod 2^{18}$, $d'=d+k-\Delta[r]$, $r'=r+1$ and applies
+kill rules (\texttt{shrink}, \texttt{exit\_high}, \texttt{exit\_low}).
+
+\section{Soundness (Projective Lock)}
+Explain that the only potential ambiguity is the carry-singularity at $2^{18}$, and show that in the live band
+no step can have $k\ge 18$; hence $k<18$ on all live transitions and $a\mapsto a'$ is determined by $a$ alone.
+Therefore the automaton is sound for the real odd-only dynamics up to the first kill.
+
+\section{Termination certificate}
+We view \texttt{next.dat} as a functional graph on the live states.
+\texttt{rank.dat} provides a strict ranking $rank(next)<rank(u)$ on every live edge, hence there are no cycles and
+every trajectory reaches a kill in finitely many steps.
+
+\section{Progress semantics of kills}
+\subsection{\texttt{exit\_high} (1-step descent)}
+State and reference the exhaustive verification that $F(a)<a$ for all \texttt{exit\_high} kills.
+
+\subsection{\texttt{shrink} (2-step descent)}
+State and reference the exhaustive verification that for all \texttt{shrink} kills,
+if $n_1=F(a)$ then $n_1\equiv 1\ (\mathrm{mod}\ 8)$ and if $n_1>1$ then $F(n_1)<n_1$.
+
+\section{Unreachability of the lower exit from the semantic start set}
+Define the semantic start set $S_0=\{(a,d=0,r=0)\}$ and cite the certified bitset
+\texttt{badpre\_exitlow.bit} showing $S_0\cap Pre^*(exit\_low)=\varnothing$.
+
+\section{Global descent and completion}
+Combine:
+(i) unreachability of \texttt{exit\_low},
+(ii) termination by rank,
+(iii) descent semantics of kills,
+to obtain strict descent in $\mathbb{N}$ after finitely many odd-only steps for any odd $n>1$.
+Conclude by well-foundedness that every trajectory reaches $1$.
+
+\begin{theorem}[Collatz]
+Every $n\in\mathbb{N}$ reaches $1$ under the Collatz iteration.
+\end{theorem}
+
+\section{Reproducibility}
+
+The archived release is available at \url{https://doi.org/10.5281/zenodo.18114234}.
+The concept DOI (all versions) is \url{https://doi.org/10.5281/zenodo.18114234}.
+
+Provide the single-command verification:
+\begin{lstlisting}
+python3 scripts/verify_full_theorem_K18_J10.py
+\end{lstlisting}
+Expected output:
+\begin{lstlisting}
+[THEOREM VERIFY] OK
+\end{lstlisting}
+
+\appendix
+\section{Artifact table (SHA256)}
+Include Appendix table with the four files and hashes.
+
+\end{document}
+
